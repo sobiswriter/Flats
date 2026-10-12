@@ -1,0 +1,3 @@
+export function matchReport(player,match,difficulty){return{date:new Date().toISOString(),rule:match.options.rule||'arena',difficulty,kills:player.kills,deaths:player.deaths,accuracy:player.shots?Math.round(player.hits/player.shots*100):0,headshots:player.headshots,bankKills:player.bankKills,wave:match.wave||0,victory:match.options.rule==='survival'?match.survived:match.players.every(p=>p.kills<=player.kills),seconds:Math.round(match.time)}}
+export function readHistory(){try{return JSON.parse(localStorage.getItem('flats-history')||'[]').slice(0,8)}catch{return[]}}
+export function saveReport(report){const list=[report,...readHistory()].slice(0,8);try{localStorage.setItem('flats-history',JSON.stringify(list))}catch{}return list}

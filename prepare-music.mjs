@@ -1,0 +1,1 @@
+import fs from 'node:fs';import {defaultMusic} from './music-files.mjs';fs.mkdirSync('public',{recursive:true});const {file,...manifest}=defaultMusic(['public']);fs.writeFileSync('public/music-default.json',JSON.stringify(manifest));
