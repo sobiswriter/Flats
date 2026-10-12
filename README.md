@@ -1,6 +1,6 @@
 # FLATS
 
-Version 0.1.2: a personal tribute to the colourful Foliage Games mobile shooter. An offline browser FPS with two open neighbourhoods, three weapons, survival guard missions, free-for-all, recoverable weapon throws, dynamic ragdolls and small slow-motion replays. Geometry and weapon effects are generated in code; the default soundtrack is your local MP3. Multiplayer remains experimental and disabled in the menu.
+Version 0.1.3: a personal tribute to the colourful Foliage Games mobile shooter. An offline browser FPS with two open neighbourhoods, three weapons, survival guard missions, free-for-all, recoverable weapon throws, dynamic ragdolls and small slow-motion replays. Geometry and weapon effects are generated in code; the default soundtrack is your local MP3. Multiplayer remains experimental and disabled in the menu.
 
 ## Run
 
@@ -180,3 +180,11 @@ Every solo kill refreshes the entire four-second FLOW timer, including kills at 
 Enemies use 11 bundled CC0 voice clips: three acquisition callouts from Kenney and four pain/four death reactions from Badre-Eddine on OpenGameArt. Files and source/license credits live in public/voices. Callouts require sight of the human; pain reactions are throttled; death interrupts that actor’s prior reaction. Distance and stereo bearing position the voices, small actor-dependent pitch shifts add variety, and only three voices can play together. Pausing/leaving stops pending voices. Enemy voices can be disabled in Settings; Effects volume also applies.
 
 Replace or extend alert, pain, and death lists in public/voices/manifest.json to use your own short voice recordings, including a Hey you! callout. Files play locally and are packaged into the build. The shipped selection adds approximately 200 KB. Nine focused timer, feedback and guard checks passed; browser playback decoded all eleven clips without failures.
+
+## Version 0.1.3 — ricochets and fresh starts
+
+Sniper rounds and shotgun pellets now reflect from solid walls and the ground, including head-on hits. Their two-bounce limit, range budget, swept collisions and 35% damage loss per bounce prevent endless reflections. Tracers and replays show their actual banked paths, and bank kills count normally. Rifle glancing ricochets and three-bank PRISM behaviour remain.
+
+Solo starts draw from a shuffled cycle of twenty clear street approaches across all five districts. Consecutive in-session restarts avoid repeating the opening point. FFA bots choose randomly among clear, separated planned posts near the player’s opening district; respawns choose among safe covered posts instead of small random rank bonuses. Survival begins in the player’s randomized district and shuffles the remaining four districts, with seven distinct planned guard posts available per wave. Guard patrol and sight behaviour are retained.
+
+Verification for this change: 26 focused ricochet, randomized-spawn, mission navigation, guard and sniper checks passed. The new tests exercise real fired sniper rounds/shotgun pellets, damage after reflection, the two-bank cap, and repeated seven-bot starts on both maps in both modes.
