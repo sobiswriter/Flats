@@ -3,7 +3,7 @@ export const CONFIG={health:100,killLimit:20,timeLimit:480,respawn:3,protection:
 export const DIFFICULTY={easy:{reaction:1.2,error:.18,speed:.65,vision:24,burst:.23,pause:1.7,turn:2,damage:.6},normal:{reaction:.85,error:.11,speed:.8,vision:28,burst:.34,pause:1.2,turn:3,damage:.75},hard:{reaction:.5,error:.055,speed:.95,vision:34,burst:.48,pause:.8,turn:4.5,damage:1}};
 export const SOLO={regenDelay:6,regenRate:.5,regenMax:4,regenRamp:18,spawnProtection:3,sensorRange:24};
 export const PRISM={cost:3,cooldown:4,damage:1.25,bankDamage:1.5,bounces:3};
-export const SURVIVAL={waves:5,breakTime:5,firstCount:2,maxCount:6};
+export const SURVIVAL={waves:5,breakTime:5,firstCount:2,maxCount:7};
 export const PRESENTATION={maxRagdolls:6,ragdollLife:9,maxEffects:120,replayFps:30};
 export const DEFAULT_BINDINGS={forward:'KeyW',back:'KeyS',left:'KeyA',right:'KeyD',jump:'Space',sprint:'ShiftLeft',crouch:'ControlLeft',reload:'KeyR'};
 

@@ -1,6 +1,6 @@
 # FLATS
 
-Version 0.1.0: a personal tribute to the colourful Foliage Games mobile shooter. An offline browser FPS with two open neighbourhoods, three weapons, survival guard missions, free-for-all, recoverable weapon throws, dynamic ragdolls and small slow-motion replays. Geometry and weapon effects are generated in code; the default soundtrack is your local MP3. Multiplayer remains experimental and disabled in the menu.
+Version 0.1.2: a personal tribute to the colourful Foliage Games mobile shooter. An offline browser FPS with two open neighbourhoods, three weapons, survival guard missions, free-for-all, recoverable weapon throws, dynamic ragdolls and small slow-motion replays. Geometry and weapon effects are generated in code; the default soundtrack is your local MP3. Multiplayer remains experimental and disabled in the menu.
 
 ## Run
 
@@ -56,7 +56,7 @@ Controls menu remaps movement actions. Settings persist in local storage: FOV, s
 
 PRISM costs three magazine rounds, banks up to three times, and has a four-second cooldown. It deals 1.25× direct damage and 1.5× after reflection; it cannot pass through cover. Press E before firing to arm the next round.
 
-Survival has five waves, two initial enemies by default, at most six simultaneous enemies, and five-second breaks. Bots pursue only you and do not respawn. You have one life; clearing all five waves wins. Health and ammunition carry between waves; use resupply and recovered weapons. Late-wave enemies have modestly higher health.
+Survival has five waves, two initial enemies by default, at most seven simultaneous enemies, and five-second breaks. Bots pursue only you and do not respawn. You have one life; clearing all five waves wins. Health and ammunition carry between waves; use resupply and recovered weapons. Late-wave enemies have modestly higher health.
 
 Core values and bot difficulty tuning live in `src/config.js` (`CONFIG`, `DIFFICULTY`, `SOLO`, `PRISM`, `SURVIVAL`, `PRESENTATION`). Arena geometry and spawn points live in `src/arena.js`. Restart the server after changing shared tuning and rebuild for production.
 
@@ -151,14 +151,32 @@ Guns retract as the barrel approaches a surface, lower fully against close walls
 
 Enemy drops now contain AR 15–30 loaded rounds + 15–30 reserve, SPAS 3–6 shells + 6–10 reserve, or AWP 1 loaded shot + 3–5 reserve. F swaps weapons while leaving your old gun on the ground with its ammunition unchanged, including empty guns. A 0.3-second pickup delay prevents an immediate accidental swap back.
 
-G throws the equipped weapon at 24 m/s with gravity and swept collision against walls and enemies. A direct hit deals 160 damage, enough to kill every survival guard, and triggers the normal kill, FLOW and replay systems. The thrown weapon lands as a recoverable pickup. You can bash with V while unarmed. Throws are limited to eight in flight; drops cap at 24 and favour retaining player-owned guns.
+G throws the equipped weapon at 34 m/s with gravity and swept collision against walls and enemies. A direct hit deals 160 damage, enough to kill every survival guard, and triggers the normal kill, FLOW and replay systems. The thrown weapon lands as a recoverable pickup. You can bash with V while unarmed. Throws are limited to eight in flight; drops cap at 24 and favour retaining player-owned guns.
 
 The SPAS now has a wide ribbed pump, tubular magazine, pistol grip and folding stock rather than an assault-rifle receiver. Its sharp initial crack, low boom and mechanical pump are different from the AR's short dry report and the AWP's heavy ringing crack. Flying and dropped guns use simple shared models.
 
-FLOW has cyan peripheral streaks that animate while moving; damage flashes red and shows its direction. Below 30 HP, black corners pulse gently. The centre of the screen stays clear. Quiet-time regeneration builds from 0.5 to 4 HP/s, caps at 100, and resets on every hit. Motion/reduced-motion preferences limit speed animations.
+FLOW has cyan peripheral streaks that animate while moving; damage flashes red and shows its direction. Below 35 HP, black corners pulse and the health number turns red. The centre of the screen stays clear. Quiet-time regeneration builds from 0.5 to 4 HP/s, caps at 100, and resets on every hit. Motion/reduced-motion preferences limit speed animations.
 
 Radio detects your supplied bgm.mp3, loops the default track, selects newly imported local songs immediately, supports seeking, and explains when the browser requires an explicit PLAY click. Local songs remain on the device. The server streams byte ranges for seeking; the production build includes the default song. A single imported song loops; multiple imported songs advance through the local playlist.
 
 Performance work includes bounded reusable weapon meshes, HUD text updates at 12.5 Hz, per-frame crosshair and hit effects, and camera projection updates only when its field of view changes. Physics and Three.js ship as separate cacheable bundles.
 
 Release verification: 68 automated tests pass, including real ragdoll physics, five-district survival progression, weapon recovery/throw collisions, progressive healing, music byte ranges and two-client network regression checks. The production build completes without bundle warnings. Browser checks exercised MP3/WAV import, playlist switching, playback controls, default-track looping, throw kills and recovery, and damage/low-health effects. Seven-bot Standard-quality matches reached six ragdolls and 120 effects on each map with a measured 16.9 ms frame P95 on the development machine (CPU P95: Chroma 6.4 ms, Foundry 8.7 ms). These measurements describe this machine and run, not every browser or device.
+
+## Version 0.1.1 — punch and presence
+
+All three guns have stronger attack transients and heavier low-frequency bodies. Nearby enemy shots are almost as present as your own, with gentler distance falloff and stereo bearing. A lighter compressor preserves their initial crack; a separate peak limiter controls simultaneous gunfire. Native offline audio checks measured approximately 1.5–2.2 times the previous early RMS amplitude for player shots and 2.1–3.1 times for enemy shots at 30 metres, depending on the gun.
+
+Enemy snipers now alternate warning misses with an aimed third or fourth shot, choosing a fresh three/four-shot cycle after each aimed attempt. The aimed shot follows a visible target's current torso position; it remains a normal projectile that movement and cover can evade. It never applies guaranteed damage through cover. Their existing 10-HP hit rule and slower firing cadence remain. Guard post ordering shuffles within safety tiers; FFA spawn ranking varies among similarly safe planned entrances. The survival arrival and district progression remain deliberate.
+
+Throws have increased speed and lower gravity, with an actual 20-metre target hit covered by regression tests. FLOW now has 24 outward peripheral streaks, a cyan tunnel glow, a stronger HUD badge, a short activation sound and smooth FOV widening of up to 10.5 degrees outside ADS. Damage flashes last half a second; critical corners pulse more visibly below 35 HP. These presentation layers remain bounded and preserve a clear central aiming area. The automated suite now has 71 passing checks.
+
+Both mode selectors support 1–7 AI combatants. In survival this sets the first-wave count; subsequent waves increase to a maximum of seven, with unique planned guard posts.
+
+## Version 0.1.2 — combat feedback and enemy voices
+
+Every solo kill refreshes the entire four-second FLOW timer, including kills at the three-stack cap. A brief refresh cue makes the reset explicit. Head hits have a small gold HEADSHOT label and a distinct bright confirmation sound, deduplicated by trigger for shotgun pellets.
+
+Enemies use 11 bundled CC0 voice clips: three acquisition callouts from Kenney and four pain/four death reactions from Badre-Eddine on OpenGameArt. Files and source/license credits live in public/voices. Callouts require sight of the human; pain reactions are throttled; death interrupts that actor’s prior reaction. Distance and stereo bearing position the voices, small actor-dependent pitch shifts add variety, and only three voices can play together. Pausing/leaving stops pending voices. Enemy voices can be disabled in Settings; Effects volume also applies.
+
+Replace or extend alert, pain, and death lists in public/voices/manifest.json to use your own short voice recordings, including a Hey you! callout. Files play locally and are packaged into the build. The shipped selection adds approximately 200 KB. Nine focused timer, feedback and guard checks passed; browser playback decoded all eleven clips without failures.
