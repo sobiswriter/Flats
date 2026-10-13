@@ -23,7 +23,7 @@ export function lineOfSight(a,b){let dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,l=Math.hyp
 export function eye(p){return {x:p.x,y:p.y+(p.crouch?.98:1.62),z:p.z}}
 export function direction(yaw,pitch){return{x:-Math.sin(yaw)*Math.cos(pitch),y:Math.sin(pitch),z:-Math.cos(yaw)*Math.cos(pitch)}}
 // Static collision data is built once. Broad-phase queries avoid scanning the city per footstep.
-const collisionGrid=new Map(),cellSize=8;
+let collisionGrid=new Map();const cellSize=8;
 for(const b of BLOCKS)for(let x=Math.floor((b.x-b.w/2-1)/cellSize);x<=Math.floor((b.x+b.w/2+1)/cellSize);x++)for(let z=Math.floor((b.z-b.d/2-1)/cellSize);z<=Math.floor((b.z+b.d/2+1)/cellSize);z++){const key=`${x},${z}`;if(!collisionGrid.has(key))collisionGrid.set(key,[]);collisionGrid.get(key).push(b)}
 export function nearbyBlocks(x,z){return collisionGrid.get(`${Math.floor(x/cellSize)},${Math.floor(z/cellSize)}`)||[]}
 let rayBoxes=BLOCKS.flatMap(b=>b.kind==='ramp'?Array.from({length:12},(_,i)=>{const z=b.z-b.d/2+(i+.5)*b.d/12;return{...b,z,d:b.d/12,h:topAt(b,b.x,z)}}):[b]);
@@ -40,8 +40,20 @@ export function wallHit(o,d,max=100){
  return result;
 }
 
-
-const classicBlocks=BLOCKS.map(b=>({...b}));
-export function configureArena(id='classic'){ACTIVE_MAP=id==='district'?'district':'classic';const foundry=ACTIVE_MAP==='district',names=['WEST FREIGHT','NORTH WORKS','EAST DOCKS','SERVICE YARD','REACTOR JUNCTION'];DISTRICTS=CLASSIC_DISTRICTS.map((d,i)=>({...d,name:foundry?names[i]:d.name}));BLOCKS=classicBlocks.filter(b=>!foundry||b.kind!=='building'||Math.abs(b.x)<72&&Math.abs(b.z)<72||Math.abs(b.x)>72&&Math.abs(b.z)<36).map(b=>({...b,...foundry&&b.kind==='building'?{w:16,d:16,h:8+(Number(b.label)%4)*4}: {}}));if(foundry)for(const x of [-90,90])for(const z of [-54,54])BLOCKS.push({x,z,w:16,h:4,d:24,kind:'warehouse'});ENTRANCES=DISTRICTS.flatMap(d=>[[-29,-18],[-18,-29],[29,-18],[18,-29],[-29,18],[-18,29],[29,18],[18,29]].map(([x,z],index)=>({x:d.x+x,z:d.z+z,sector:d.id,index,entry:{x:d.x+(Math.abs(x)===29?x:0),z:d.z+(Math.abs(z)===29?z:0)}})));SPAWNS=ENTRANCES.map(p=>[p.x,p.z]);SUPPLIES=DISTRICTS.map(d=>({x:d.x+5,z:d.z+5,name:d.name}));collisionGrid.clear();for(const b of BLOCKS)for(let x=Math.floor((b.x-b.w/2-1)/cellSize);x<=Math.floor((b.x+b.w/2+1)/cellSize);x++)for(let z=Math.floor((b.z-b.d/2-1)/cellSize);z<=Math.floor((b.z+b.d/2+1)/cellSize);z++){const key=x+','+z;if(!collisionGrid.has(key))collisionGrid.set(key,[]);collisionGrid.get(key).push(b)}rayBoxes=BLOCKS;
+const classicBlocks=BLOCKS.map(b=>({...b})),arenaCache=new Map();
+function buildArenaData(id='classic'){
+ const map=id==='district'?'district':'classic',foundry=map==='district',names=['WEST FREIGHT','NORTH WORKS','EAST DOCKS','SERVICE YARD','REACTOR JUNCTION'];
+ const districts=CLASSIC_DISTRICTS.map((d,i)=>({...d,name:foundry?names[i]:d.name}));
+ const blocks=classicBlocks.filter(b=>!foundry||b.kind!=='building'||Math.abs(b.x)<72&&Math.abs(b.z)<72||Math.abs(b.x)>72&&Math.abs(b.z)<36).map(b=>({...b,...foundry&&b.kind==='building'?{w:16,d:16,h:8+(Number(b.label)%4)*4}:{}}));
+ if(foundry)for(const x of [-90,90])for(const z of [-54,54])blocks.push({x,z,w:16,h:4,d:24,kind:'warehouse'});
+ const entrances=districts.flatMap(d=>[[-29,-18],[-18,-29],[29,-18],[18,-29],[-29,18],[-18,29],[29,18],[18,29]].map(([x,z],index)=>({x:d.x+x,z:d.z+z,sector:d.id,index,entry:{x:d.x+(Math.abs(x)===29?x:0),z:d.z+(Math.abs(z)===29?z:0)}})));
+ const spawns=entrances.map(p=>[p.x,p.z]);
+ const supplies=districts.map(d=>({x:d.x+5,z:d.z+5,name:d.name}));
+ const grid=new Map();
+ for(const b of blocks)for(let x=Math.floor((b.x-b.w/2-1)/cellSize);x<=Math.floor((b.x+b.w/2+1)/cellSize);x++)for(let z=Math.floor((b.z-b.d/2-1)/cellSize);z<=Math.floor((b.z+b.d/2+1)/cellSize);z++){const key=x+','+z;if(!grid.has(key))grid.set(key,[]);grid.get(key).push(b)}
+ return{id:map,districts,blocks,entrances,spawns,supplies,grid,rayBoxes:blocks};
 }
+export function getArenaData(id='classic'){const key=id==='district'?'district':'classic';if(!arenaCache.has(key))arenaCache.set(key,buildArenaData(key));return arenaCache.get(key)}
+export function preloadArenas(){getArenaData('classic');getArenaData('district')}
+export function configureArena(id='classic'){const data=getArenaData(id);ACTIVE_MAP=data.id;DISTRICTS=data.districts;BLOCKS=data.blocks;ENTRANCES=data.entrances;SPAWNS=data.spawns;SUPPLIES=data.supplies;collisionGrid=data.grid;rayBoxes=data.rayBoxes;return data}
 export function weaponClearance(p){const e=eye(p),d=direction(p.yaw,p.pitch),right={x:Math.cos(p.yaw),z:-Math.sin(p.yaw)};let distance=wallDistance(e,d,2);for(const side of [0,.42]){const o={x:e.x+right.x*side,y:e.y-.16,z:e.z+right.z*side};const near=wallDistance(e,{x:right.x,y:0,z:right.z},side);if(near<side)return 0;distance=Math.min(distance,wallDistance(o,d,2))}return distance}
